@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { Suspense, useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import {useRouter, useSearchParams} from 'next/navigation'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,15 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ResendVerificationEmail } from '@/components/email/resend-email-verification-button'
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState<string | null>(null)
     const [showResendVerification, setShowResendVerification] = useState(false)
-
-    const searchParams = useSearchParams()
-    const justRegistered = searchParams.get('registered') === 'true'
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -52,11 +49,6 @@ export default function LoginPage() {
                 <CardHeader>
                     <CardTitle className="text-2xl font-bold">Login</CardTitle>
                     <CardDescription>Enter your credentials to access your account</CardDescription>
-                    {justRegistered && (
-                        <Alert className="mt-4">
-                            <AlertDescription>Registration successful! Please check your email to verify your account before logging in.</AlertDescription>
-                        </Alert>
-                    )}
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit}>
@@ -112,5 +104,29 @@ export default function LoginPage() {
                 </CardFooter>
             </Card>
         </div>
+    )
+}
+
+function RegistrationStatus() {
+    const searchParams = useSearchParams()
+    const justRegistered = searchParams.get('registered') === 'true'
+
+    if (!justRegistered) return null
+
+    return (
+        <Alert className="mb-4">
+            <AlertDescription>Registration successful! Please check your email to verify your account before logging in.</AlertDescription>
+        </Alert>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={null}>
+            <div className="space-y-4">
+                <RegistrationStatus />
+                <LoginForm />
+            </div>
+        </Suspense>
     )
 }
